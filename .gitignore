@@ -1,18 +1,18 @@
-# built application files
+# Built application files
 *.apk
 *.ap_
 
-# files for the dex VM
+# Files for the DeX VM
 *.dex
 
 # Java class files
 *.class
 
-# generated files
+# Generated files
 bin/
 gen/
 
-# Local configuration file (sdk path, etc)
+# Local configuration file (SDK path, etc.)
 local.properties
 
 # Eclipse project files
@@ -60,3 +60,8 @@ local.properties
 
 # PDT-specific
 .buildpath
+
+# Additional
+*.pyc
+*.pyo
+.DS_Store
