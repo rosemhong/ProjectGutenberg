@@ -4,19 +4,24 @@ import random
 import re
 import string
 
+from Trie import *
+
 class ProjectGutenberg:
 	def __init__(self, book_fname, common_words_fname):
 		self.book_fname = book_fname
 		self.common_words_fname = common_words_fname
 		self.book_parsed = ''
 		self.book_parsed_with_punctuation = ''
+		self.book_parsed_without_quotes = ''
 		self.common_words_parsed = ''
 		self.chapters = 1
 		self.chapter_numbers_list = []
 
-	## parse_book_txt_file()
-	## Description: Parses the book's .txt file into a string, excluding
-	## the Project Gutenberg front-matter and back-matter sections. 
+	"""
+	parse_book_txt_file()
+	Description: Parses the book's .txt file into a string, excluding
+	the Project Gutenberg front-matter and back-matter sections. 
+	"""
 	def parse_book_txt_file(self):
 		with open(self.book_fname, 'r') as f:
 			# start reading at 'Chapter 1\n'
@@ -34,7 +39,10 @@ class ProjectGutenberg:
 
 				self.book_parsed += line.replace('\n', ' ')
 
-		self.book_parsed_with_punctuation = self.book_parsed
+		self.book_parsed_with_punctuation = self.book_parsed.replace('_', '')
+
+		# strip string of '_', '“', '”', '(', ')', '[', and ']'
+		self.book_parsed_without_matching = self.book_parsed.replace('_', '').replace('“', '').replace('”', '').replace('(', '').replace(')', '').replace('[', '').replace(']', '')
 
 		# strip string of all punctuation
 		exclude = set(string.punctuation)
@@ -46,11 +54,13 @@ class ProjectGutenberg:
 
 		self.chapter_numbers_list = [str(i) for i in range(1, self.chapters)]
 
-	## parse_common_words_txt_file(n)
-	## Description: Parses a .txt file of the 1,000 most common English words
-	## into a list containing the first n words.
-	## Credit for '1-1000.txt', which contains a list of the 1,000 most common
-	## English words, goes to https://gist.github.com/deekayen.
+	"""
+	parse_common_words_txt_file(n)
+	Description: Parses a .txt file of the 1,000 most common English words
+	into a list containing the first n words.
+	Credit for '1-1000.txt', which contains a list of the 1,000 most common
+	English words, goes to https://gist.github.com/deekayen.
+	"""
 	def parse_common_words_txt_file(self, n):
 		if not(n >= 0 and n <= 1000):
 			print('Error: The number of common words to be parsed must be between 0 and 1000 inclusive.')
@@ -60,25 +70,31 @@ class ProjectGutenberg:
 		with open(self.common_words_fname, 'r') as f:
 			self.common_words_parsed = [next(f).replace('\n', '') for i in range(n)]
 
-	## get_total_number_of_words()
-	## Description: Returns the number of words in a .txt file using
-	## regular expressions, which handles cases of punctuation marks or
-	## special characters in the string.
+	"""
+	get_total_number_of_words()
+	Description: Returns the number of words in a .txt file using
+	regular expressions, which handles cases of punctuation marks or
+	special characters in the string.
+	"""
 	def get_total_number_of_words(self):
 		total_number_of_words = len(re.findall(r'\w+', self.book_parsed))
 		print('Total number of words: ' + str(total_number_of_words))
 		print()
 
-	## get_total_unique_words()
-	## Description: Returns the number of unique words in the .txt file.
+	"""
+	get_total_unique_words()
+	Description: Returns the number of unique words in the .txt file.
+	"""
 	def get_total_unique_words(self):
 		book_parsed_lower = self.book_parsed.lower()
 		print('Total number of unique words: ' + str(len(set(book_parsed_lower.split()))))
 		print()
 
-	## get_20_most_frequent_words()
-	## Description: Returns a list of the 20 most frequent words in the .txt file,
-	## including the number of times each word was used.
+	"""
+	get_20_most_frequent_words()
+	Description: Returns a list of the 20 most frequent words in the .txt file,
+	including the number of times each word was used.
+	"""
 	def get_20_most_frequent_words(self):
 		book_parsed = self.book_parsed
 		freqs = dict(collections.Counter(book_parsed.split()))
@@ -133,12 +149,14 @@ class ProjectGutenberg:
 		print('20 most frequent words: ' + str(most_frequent_20_words))
 		print()
 
-	## get_20_most_interesting_frequent_words()
-	## Description: Returns a list of the 20 most frequent words in the .txt file
-	## after filtering out the n most common English words, where n is a
-	## parameter of the method parse_common_words_txt_file(n).
-	## Credit for '1-1000.txt', which contains a list of the 1,000 most common
-	## English words, goes to https://gist.github.com/deekayen.
+	"""
+	get_20_most_interesting_frequent_words()
+	Description: Returns a list of the 20 most frequent words in the .txt file
+	after filtering out the n most common English words, where n is a
+	parameter of the method parse_common_words_txt_file(n).
+	Credit for '1-1000.txt', which contains a list of the 1,000 most common
+	English words, goes to https://gist.github.com/deekayen.
+	"""
 	def get_20_most_interesting_frequent_words(self):
 		book_parsed = self.book_parsed
 		freqs = dict(collections.Counter(book_parsed.split()))
@@ -192,10 +210,12 @@ class ProjectGutenberg:
 		print('20 most frequent interesting words: ' + str(most_frequent_20_interesting_words))
 		print()
 
-	## get_20_least_frequent_words()
-	## Description: Returns a list of the 20 least frequent words in the .txt file.
-	## If multiple words are seen the same number of times, then the first 20
-	## are chosen in lexical order. Chapter numbers are excluded from the list.
+	"""
+	get_20_least_frequent_words()
+	Description: Returns a list of the 20 least frequent words in the .txt file.
+	If multiple words are seen the same number of times, then the first 20
+	are chosen in lexical order. Chapter numbers are excluded from the list.
+	"""
 	def get_20_least_frequent_words(self):
 		book_parsed = self.book_parsed
 		freqs = dict(collections.Counter(book_parsed.split()))
@@ -251,10 +271,12 @@ class ProjectGutenberg:
 		print('20 least frequent words: ' + str(least_frequent_20_words))
 		print()
 
-	## get_frequency_of_word(word)
-	## Description: Returns a list of the number of times a word was used
-	## in each chapter (61 chapters for Pride and Prejudice).
-	## Capitalization-sensitive (ie 'the' is counted separate from 'The').
+	"""
+	get_frequency_of_word(word)
+	Description: Returns a list of the number of times a word was used
+	in each chapter (61 chapters for Pride and Prejudice).
+	Capitalization-sensitive (ie 'the' is counted separate from 'The').
+	"""
 	def get_frequency_of_word(self, word):
 		chapter_frequency_of_word = []
 		for i in range(1, self.chapters + 1):
@@ -274,9 +296,11 @@ class ProjectGutenberg:
 		print('Frequency of the word ' + '"' + word + '": ' + str(chapter_frequency_of_word))
 		print()
 
-	## get_chapter_quote_appears(quote)
-	## Description: Returns the chapter in which the quote appears.
-	## Capitalization-sensitive.
+	"""
+	get_chapter_quote_appears(quote)
+	Description: Returns the chapter in which the quote appears.
+	Capitalization-sensitive.
+	"""
 	def get_chapter_quote_appears(self, quote):
 		for i in range(1, self.chapters + 1):
 			chapter_start = 'Chapter ' + str(i)
@@ -298,14 +322,16 @@ class ProjectGutenberg:
 		print('Error: Quote ' + '"' + quote + '" cannot be found.')
 		print()
 
-	## generate_sentence()
-	## Description: Generates a 20-word sentence in the author's style, word by word.
-	## All sentences generated start with 'The'.
+	"""
+	generate_sentence()
+	Description: Generates a 20-word sentence in the author's style, word by word.
+	All sentences generated start with 'The'.
+	"""
 	def generate_sentence(self):
 		sentence_list = ['The']
 
 		while len(sentence_list) < 20:
-			sentence_list.append(self.generate_next_word(sentence_list[-1]))
+			sentence_list.append(self.generate_sentence_helper(sentence_list[-1]))
 
 		punctuation = set(string.punctuation)
 		punctuation.add('“') # double quotation symbols specific to the 'Pride-and-Prejudice.txt' file
@@ -319,13 +345,15 @@ class ProjectGutenberg:
 
 		print('Generated sentence: ' + sentence)
 
-	## generate_next_word()
-	## Description: Searches for words that the author uses immediately after
-	## all instances of the word passed in. Randomly selects and returns
-	## 1 of these words. More frequent words will be selected more often.
-	## Capitalization-sensitive. Includes punctuation.
-	def generate_next_word(self, word):
-		book_parsed_list = self.book_parsed_with_punctuation.split()
+	"""
+	generate_sentence_helper()
+	Description: Generates the next word for generate_sentence(). Searches for words
+	that occur immediately after all instances of the word passed in. Randomly selects
+	and returns 1 of these words. More frequently-occurring words are selected more often.
+	Capitalization-sensitive.
+	"""
+	def generate_sentence_helper(self, word):
+		book_parsed_list = self.book_parsed_without_matching.split()
 		next_words = []
 
 		done = False
@@ -340,4 +368,39 @@ class ProjectGutenberg:
 
 		random_index = random.randint(0, len(next_words) - 1)
 		return next_words[random_index]
+
+	"""
+	get_autocomplete_sentence(start_of_sentence)
+	Description: Takes in word(s) that occur at the start of some sentence
+	in the text and returns a list of all sentences that start with those word(s).
+	Capitalization-sensitive.
+	"""
+	def get_autocomplete_sentence(self, start_of_sentence):
+		# 'Mrs.' and 'Mr.' should not be parsed into their own sentences
+		book_parsed_with_punctuation = self.book_parsed_with_punctuation.replace('Mrs.', '$MRS$').replace('Mr.', '$MR$')
+		book_parsed_sentences_list = book_parsed_with_punctuation.split('.')
+		
+		trie = Trie()
+		# insert every sentence of the text into the trie
+		for sentence in book_parsed_sentences_list:
+			trie.insert(sentence)
+			pass
+
+		if 'Mrs.' in start_of_sentence:
+			start_of_sentence = start_of_sentence.replace('Mrs.', '$MRS$')
+		if 'Mr.' in start_of_sentence:
+			start_of_sentence = start_of_sentence.replace('Mr.', '$MR$')
+
+		autocomplete_sentences = trie.get_autocomplete_sentence_helper(start_of_sentence)
+
+		# re-render 'Mrs.' and 'Mr.' in the autocomplete sentences
+		for i in range(len(autocomplete_sentences)):
+			if '$MRS$' in autocomplete_sentences[i]:
+				autocomplete_sentences[i] = autocomplete_sentences[i].replace('$MRS$', 'Mrs.')
+			if '$MR$' in autocomplete_sentences[i]:
+				autocomplete_sentences[i] = autocomplete_sentences[i].replace('$MR$', 'Mr.')
+
+		print('Autocomplete sentences starting with ' + '"' + start_of_sentence + '":')
+		for i in range(len(autocomplete_sentences)):
+			print(str(i + 1) + '. ' + autocomplete_sentences[i])
 

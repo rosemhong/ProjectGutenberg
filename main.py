@@ -18,10 +18,15 @@ def main():
 	p_and_p.get_frequency_of_word('Wickham')
 	p_and_p.get_frequency_of_word('family')
 	p_and_p.get_chapter_quote_appears("He had rather hoped that his wife's views on the stranger would be disappointed;")
+	p_and_p.get_chapter_quote_appears('“I cannot see why Mrs. Forster should not ask me as well as Lydia,”')
+	p_and_p.get_chapter_quote_appears("Mr. Bennet missed his second daughter exceedingly;")
 
-	for i in range(5):
-		p_and_p.generate_sentence()
-	print()
+	# for i in range(5):
+	# 	p_and_p.generate_sentence()
+	# print()
+
+	p_and_p.get_autocomplete_sentence('He had')
+	p_and_p.get_autocomplete_sentence('Mrs. Bennet')
 
 main()
 
