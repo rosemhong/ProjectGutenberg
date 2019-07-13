@@ -341,31 +341,3 @@ class ProjectGutenberg:
 		random_index = random.randint(0, len(next_words) - 1)
 		return next_words[random_index]
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
