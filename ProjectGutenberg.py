@@ -348,7 +348,7 @@ class ProjectGutenberg:
 
 		autocomplete_sentences = trie.get_autocomplete_sentences_helper(start_of_sentence)
 
-		# re-render 'Mrs.' and 'Mr.' in the autocomplete sentences
+		# re-render 'Mrs.', 'Mr.', and 'Esq.' in the autocomplete sentences
 		for i in range(len(autocomplete_sentences)):
 			if '$MRS$' in autocomplete_sentences[i]:
 				autocomplete_sentences[i] = autocomplete_sentences[i].replace('$MRS$', 'Mrs.')
