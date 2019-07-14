@@ -4,7 +4,7 @@ import random
 import re
 import string
 
-from Trie import *
+from trie import *
 
 class ProjectGutenberg:
 	def __init__(self, book_fname='Pride-and-Prejudice.txt', common_words_fname='1-1000.txt'):

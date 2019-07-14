@@ -1,4 +1,4 @@
-from ProjectGutenberg import *
+from project_gutenberg import *
 
 """
 display_menu()
@@ -86,7 +86,7 @@ def menu(book, book_fname):
 def main():
 	print()
 	print('Welcome to the Project Gutenberg Analysis Project.')
-	book_fname = input('\nWhich .txt file would you like to analyze?: ')
+	book_fname = input('\nWhich .txt file would you like to analyze? (Q to quit): ')
 	found_fname = False
 	while not found_fname and book_fname != 'Q' and book_fname != 'q':
 		try:
