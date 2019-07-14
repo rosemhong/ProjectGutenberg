@@ -10,9 +10,9 @@ def display_menu(book_fname):
 	print('1. Get the total number of chapters.')
 	print('2. Get the total number of words.')
 	print('3. Get the total number of unique words.')
-	print('4. Get the 20 most frequently-occuring words.')
-	print('5. Get the 20 most frequently-occuring words, excluding the 300 most common English words.')
-	print('6. Get the 20 least frequently-occuring words.')
+	print('4. Get the 20 most frequently-occurring words.')
+	print('5. Get the 20 most frequently-occurring words, excluding the 300 most common English words.')
+	print('6. Get the 20 least frequently-occurring words.')
 	print('7. Get the frequency of a word by chapter.')
 	print('8. Get the chapter in which a quote appears.')
 	print("9. Generate a 20-word sentence in the author's style.")
@@ -42,11 +42,11 @@ def menu(book, book_fname):
 			elif option == '3':
 				print('\nTotal number of unique words: ' + str(book.get_total_unique_words()))
 			elif option == '4':
-				print('\n20 most frequently-occuring words: ' + str(book.get_20_most_frequent_words()))
+				print('\n20 most frequently-occurring words: ' + str(book.get_20_most_frequent_words()))
 			elif option == '5':
-				print('\n20 most frequently-occuring interesting words: ' + str(book.get_20_most_interesting_frequent_words()))
+				print('\n20 most frequently-occurring words, excluding the 300 most common English words: ' + str(book.get_20_most_interesting_frequent_words()))
 			elif option == '6':
-				print('\n20 least frequently-occuring words: ' + str(book.get_20_least_frequent_words()))
+				print('\n20 least frequently-occurring words: ' + str(book.get_20_least_frequent_words()))
 			elif option == '7':
 				word = input('\nWhich word would you like to get the frequency of?: ')
 				print('Frequency of the word ' + '"' + word + '" by chapter: ' + str(book.get_frequency_of_word(word)))
