@@ -36,18 +36,18 @@ class Trie:
     def get_sentences(self, start_of_sentence):
         sentence = set()
         if self.end_of_sentence:
-            sentence.add(start_of_sentence[:len(start_of_sentence) - 1] + '.')
+            sentence.add(start_of_sentence[:len(start_of_sentence) - 1])
         if not self.children:
             return sentence
 
         return functools.reduce(lambda a, b: a | b, [next_word.get_sentences(start_of_sentence + word) for (word, next_word) in self.children.items()]) | sentence
 
     """
-    get_autocomplete_sentence_helper(start_of_sentence)
+    get_autocomplete_sentences_helper(start_of_sentence)
     Description: Given word(s) that occur at the start of some sentence in the text,
     retrieves a list of all sentences that begin with those word(s).
     """
-    def get_autocomplete_sentence_helper(self, start_of_sentence):
+    def get_autocomplete_sentences_helper(self, start_of_sentence):
         sentence_list = start_of_sentence.split()
         current_word = self
 
@@ -57,4 +57,3 @@ class Trie:
             current_word = current_word.children[(word + ' ')]
 
         return list(current_word.get_sentences(start_of_sentence + ' '))
-

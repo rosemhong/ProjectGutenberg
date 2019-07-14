@@ -7,15 +7,21 @@ import string
 from Trie import *
 
 class ProjectGutenberg:
-	def __init__(self, book_fname, common_words_fname):
+	def __init__(self, book_fname='Pride-and-Prejudice.txt', common_words_fname='1-1000.txt'):
 		self.book_fname = book_fname
 		self.common_words_fname = common_words_fname
 		self.book_parsed = ''
+		self.book_parsed_with_apostrophes_only = ''
 		self.book_parsed_with_punctuation = ''
 		self.book_parsed_without_quotes = ''
 		self.common_words_parsed = ''
 		self.chapters = 1
 		self.chapter_numbers_list = []
+		self.freqs = {}
+
+		self.parse_book_txt_file()
+		self.parse_common_words_txt_file(300) # filter out the 300 most common English words
+		self.populate_freqs()
 
 	"""
 	parse_book_txt_file()
@@ -41,15 +47,21 @@ class ProjectGutenberg:
 
 		self.book_parsed_with_punctuation = self.book_parsed.replace('_', '')
 
-		# strip string of '_', '“', '”', '(', ')', '[', and ']'
-		self.book_parsed_without_matching = self.book_parsed.replace('_', '').replace('“', '').replace('”', '').replace('(', '').replace(')', '').replace('[', '').replace(']', '')
+		# strip string of '_', '“', '”', "'", '(', ')', '[', and ']'
+		self.book_parsed_without_matching = self.book_parsed.replace('_', '').replace('“', '').replace('”', '').replace("' ", ' ').replace('(', '').replace(')', '').replace('[', '').replace(']', '')
 
 		# strip string of all punctuation
 		exclude = set(string.punctuation)
 		exclude.add('“') # double quotation symbols specific to the 'Pride-and-Prejudice.txt' file
 		exclude.add('”')
 		exclude.remove('-') # hyphenated words should remain that way
+		
 		self.book_parsed = self.book_parsed.replace('--', ' ')
+
+		exclude.remove("'")
+		self.book_parsed_with_apostrophes_only = ''.join(ch for ch in self.book_parsed if ch not in exclude)
+		exclude.add("'")
+
 		self.book_parsed = ''.join(ch for ch in self.book_parsed if ch not in exclude)
 
 		self.chapter_numbers_list = [str(i) for i in range(1, self.chapters)]
@@ -71,50 +83,55 @@ class ProjectGutenberg:
 			self.common_words_parsed = [next(f).replace('\n', '') for i in range(n)]
 
 	"""
+	get_total_number_of_chapters()
+	Description: Returns the number of chapters in the text.
+	"""
+	def get_total_number_of_chapters(self):
+		return self.chapters
+
+	"""
 	get_total_number_of_words()
-	Description: Returns the number of words in a .txt file using
+	Description: Returns the number of words in the text using
 	regular expressions, which handles cases of punctuation marks or
 	special characters in the string.
 	"""
 	def get_total_number_of_words(self):
-		total_number_of_words = len(re.findall(r'\w+', self.book_parsed))
-		print('Total number of words: ' + str(total_number_of_words))
-		print()
+		total_number_of_words = len(re.findall(r'\w+', self.book_parsed_with_apostrophes_only))
+		return total_number_of_words
 
 	"""
 	get_total_unique_words()
-	Description: Returns the number of unique words in the .txt file.
+	Description: Returns the number of unique words in the text.
 	"""
 	def get_total_unique_words(self):
-		book_parsed_lower = self.book_parsed.lower()
-		print('Total number of unique words: ' + str(len(set(book_parsed_lower.split()))))
-		print()
+		book_parsed_lower = self.book_parsed_with_apostrophes_only.lower()
+		return len(set(book_parsed_lower.split()))
 
 	"""
-	get_20_most_frequent_words()
-	Description: Returns a list of the 20 most frequent words in the .txt file,
-	including the number of times each word was used.
+	populate_freqs(self)
+	Description: Populates a dictionary containing the frequencies of
+	each word in the text.
 	"""
-	def get_20_most_frequent_words(self):
-		book_parsed = self.book_parsed
-		freqs = dict(collections.Counter(book_parsed.split()))
+	def populate_freqs(self):
+		book_parsed = self.book_parsed_with_apostrophes_only
+		self.freqs = dict(collections.Counter(book_parsed.split()))
 
 		# adjust count for common nouns that are occasionally capitalized
 		# at the beginning of sentences and counted as 2 distinct words
 		# for example: 'the' and 'The' should be recombined as 1 entry 'the'
 		# in freqs
-		for word in list(freqs):
+		for word in list(self.freqs):
 			if word[0].islower():
 				capitalized_word = word[0].upper() + word[1:]
 			else:
 				capitalized_word = word
 				word = word[0].lower() + word[1:]
 
-			if word in freqs and capitalized_word in freqs: # not a proper noun
-				freqs[word] += freqs.pop(capitalized_word)
+			if word in self.freqs and capitalized_word in self.freqs: # not a proper noun
+				self.freqs[word] += self.freqs.pop(capitalized_word)
 
 		# adjust count for words that appear in all caps, as necessary
-		for word in list(freqs):
+		for word in list(self.freqs):
 			if len(word) == 1:
 				continue
 
@@ -130,13 +147,19 @@ class ProjectGutenberg:
 				capitalized_word = all_lower_word[0].upper() + all_lower_word[1:]
 
 				# proper noun, since double-counted common nouns were already deleted
-				if capitalized_word in freqs:
-					freqs[capitalized_word] += freqs.pop(word)
-				elif all_lower_word in freqs: # not a proper noun
-					freqs[all_lower_word] += freqs.pop(word)
+				if capitalized_word in self.freqs:
+					self.freqs[capitalized_word] += self.freqs.pop(word)
+				elif all_lower_word in self.freqs: # not a proper noun
+					self.freqs[all_lower_word] += self.freqs.pop(word)
 
+	"""
+	get_20_most_frequent_words()
+	Description: Returns a list of the 20 most frequent words in the text.
+	including the number of times each word was used.
+	"""
+	def get_20_most_frequent_words(self):
 		# use a max heap
-		heap = [(-freq, word) for word, freq in freqs.items()]
+		heap = [(-freq, word) for word, freq in self.freqs.items()]
 		heapq.heapify(heap)
 
 		most_frequent_20_words = []
@@ -146,59 +169,23 @@ class ProjectGutenberg:
 			popped = heapq.heappop(heap)
 			most_frequent_20_words.append([popped[1], -popped[0]])
 
-		print('20 most frequent words: ' + str(most_frequent_20_words))
-		print()
+		for i in range(len(most_frequent_20_words)):
+			if 'Mrs' in most_frequent_20_words[i][0] or 'Mr' in most_frequent_20_words[i][0] or 'Esq' in most_frequent_20_words[i][0]:
+				most_frequent_20_words[i][0] += '.'
+
+		return most_frequent_20_words
 
 	"""
 	get_20_most_interesting_frequent_words()
-	Description: Returns a list of the 20 most frequent words in the .txt file
+	Description: Returns a list of the 20 most frequent words in the text
 	after filtering out the n most common English words, where n is a
 	parameter of the method parse_common_words_txt_file(n).
 	Credit for '1-1000.txt', which contains a list of the 1,000 most common
 	English words, goes to https://gist.github.com/deekayen.
 	"""
 	def get_20_most_interesting_frequent_words(self):
-		book_parsed = self.book_parsed
-		freqs = dict(collections.Counter(book_parsed.split()))
-
-		# adjust count for common nouns that are occasionally capitalized
-		# at the beginning of sentences and counted as 2 distinct words
-		# for example: 'the' and 'The' should be recombined as 1 entry 'the'
-		# in freqs
-		for word in list(freqs):
-			if word[0].islower():
-				capitalized_word = word[0].upper() + word[1:]
-			else:
-				capitalized_word = word
-				word = word[0].lower() + word[1:]
-
-			if word in freqs and capitalized_word in freqs: # not a proper noun
-				freqs[word] += freqs.pop(capitalized_word)
-
-		# adjust count for words that appear in all caps, as necessary
-		for word in list(freqs):
-			if len(word) == 1:
-				continue
-
-			all_caps = True
-			for c in word:
-				if c.islower():
-					all_caps = False
-
-			if all_caps:
-				all_lower_word = ''
-				for c in word:
-					all_lower_word += c.lower()
-				capitalized_word = all_lower_word[0].upper() + all_lower_word[1:]
-
-				# proper noun, since double-counted common nouns were already deleted
-				if capitalized_word in freqs:
-					freqs[capitalized_word] += freqs.pop(word)
-				elif all_lower_word in freqs: # not a proper noun
-					freqs[all_lower_word] += freqs.pop(word)
-
 		# use a max heap
-		heap = [(-freq, word) for word, freq in freqs.items()]
+		heap = [(-freq, word) for word, freq in self.freqs.items()]
 		heapq.heapify(heap)
 
 		most_frequent_20_interesting_words = []
@@ -207,57 +194,21 @@ class ProjectGutenberg:
 			if popped[1] not in self.common_words_parsed and popped[1].upper() not in self.common_words_parsed:
 				most_frequent_20_interesting_words.append([popped[1], -popped[0]])
 
-		print('20 most frequent interesting words: ' + str(most_frequent_20_interesting_words))
-		print()
+		for i in range(len(most_frequent_20_interesting_words)):
+			if 'Mrs' in most_frequent_20_interesting_words[i][0] or 'Mr' in most_frequent_20_interesting_words[i][0] or 'Esq' in most_frequent_20_interesting_words[i][0]:
+				most_frequent_20_interesting_words[i][0] += '.'
+
+		return most_frequent_20_interesting_words
 
 	"""
 	get_20_least_frequent_words()
-	Description: Returns a list of the 20 least frequent words in the .txt file.
+	Description: Returns a list of the 20 least frequent words in the text.
 	If multiple words are seen the same number of times, then the first 20
 	are chosen in lexical order. Chapter numbers are excluded from the list.
 	"""
 	def get_20_least_frequent_words(self):
-		book_parsed = self.book_parsed
-		freqs = dict(collections.Counter(book_parsed.split()))
-
-		# adjust count for common nouns that are occasionally capitalized
-		# at the beginning of sentences and counted as 2 distinct words
-		# for example: 'the' and 'The' should be recombined as 1 entry 'the'
-		# in freqs
-		for word in list(freqs):
-			if word[0].islower():
-				capitalized_word = word[0].upper() + word[1:]
-			else:
-				capitalized_word = word
-				word = word[0].lower() + word[1:]
-
-			if word in freqs and capitalized_word in freqs: # not a proper noun
-				freqs[word] += freqs.pop(capitalized_word)
-
-		# adjust count for words that appear in all caps, as necessary
-		for word in list(freqs):
-			if len(word) == 1:
-				continue
-
-			all_caps = True
-			for c in word:
-				if c.islower():
-					all_caps = False
-
-			if all_caps:
-				all_lower_word = ''
-				for c in word:
-					all_lower_word += c.lower()
-				capitalized_word = all_lower_word[0].upper() + all_lower_word[1:]
-
-				# proper noun, since double-counted common nouns were already deleted
-				if capitalized_word in freqs:
-					freqs[capitalized_word] += freqs.pop(word)
-				elif all_lower_word in freqs: # not a proper noun
-					freqs[all_lower_word] += freqs.pop(word)
-
 		# use a min heap
-		heap = [(freq, word) for word, freq in freqs.items()]
+		heap = [(freq, word) for word, freq in self.freqs.items()]
 		heapq.heapify(heap)
 
 		least_frequent_20_words = []
@@ -268,8 +219,11 @@ class ProjectGutenberg:
 			if popped[1] not in self.chapter_numbers_list:
 				least_frequent_20_words.append([popped[1], popped[0]])
 
-		print('20 least frequent words: ' + str(least_frequent_20_words))
-		print()
+		for i in range(len(least_frequent_20_words)):
+			if 'Mrs' in least_frequent_20_words[i][0] or 'Mr' in least_frequent_20_words[i][0] or 'Esq' in least_frequent_20_words[i][0]:
+				least_frequent_20_words[i][0] += '.'
+
+		return least_frequent_20_words
 
 	"""
 	get_frequency_of_word(word)
@@ -286,15 +240,14 @@ class ProjectGutenberg:
 			else:
 				chapter_stop = 'Chapter ' + str(i + 1)
 
-			chapter_start_index = self.book_parsed.find(chapter_start)
-			chapter_stop_index = self.book_parsed.find(chapter_stop)
-
-			chapter_parsed = self.book_parsed[chapter_start_index:chapter_stop_index]
+			chapter_start_index = self.book_parsed_with_apostrophes_only.find(chapter_start)
+			chapter_stop_index = self.book_parsed_with_apostrophes_only.find(chapter_stop)
+			chapter_parsed = self.book_parsed_with_apostrophes_only[chapter_start_index:chapter_stop_index]
+				
 			chapter_parsed_list = chapter_parsed.split()
 			chapter_frequency_of_word.append(chapter_parsed_list.count(word))
 
-		print('Frequency of the word ' + '"' + word + '": ' + str(chapter_frequency_of_word))
-		print()
+		return chapter_frequency_of_word
 
 	"""
 	get_chapter_quote_appears(quote)
@@ -314,13 +267,9 @@ class ProjectGutenberg:
 				chapter_parsed = self.book_parsed_with_punctuation[chapter_start_index:chapter_stop_index]
 
 			if quote in chapter_parsed:
-				print('Quote ' + '"' + quote + '" appears in: Chapter ' + str(i))
-				print()
-				return
+				return i
 
-		# once returns are implemented, should return -1 if not found
-		print('Error: Quote ' + '"' + quote + '" cannot be found.')
-		print()
+		return -1
 
 	"""
 	generate_sentence()
@@ -343,7 +292,7 @@ class ProjectGutenberg:
 			sentence = sentence[:len(sentence) - 1]
 		sentence += '.'
 
-		print('Generated sentence: ' + sentence)
+		return sentence
 
 	"""
 	generate_sentence_helper()
@@ -370,15 +319,17 @@ class ProjectGutenberg:
 		return next_words[random_index]
 
 	"""
-	get_autocomplete_sentence(start_of_sentence)
+	get_autocomplete_sentences(start_of_sentence)
 	Description: Takes in word(s) that occur at the start of some sentence
 	in the text and returns a list of all sentences that start with those word(s).
 	Capitalization-sensitive.
 	"""
-	def get_autocomplete_sentence(self, start_of_sentence):
-		# 'Mrs.' and 'Mr.' should not be parsed into their own sentences
-		book_parsed_with_punctuation = self.book_parsed_with_punctuation.replace('Mrs.', '$MRS$').replace('Mr.', '$MR$')
-		book_parsed_sentences_list = book_parsed_with_punctuation.split('.')
+	def get_autocomplete_sentences(self, start_of_sentence):
+		# 'Mrs.', 'Mr.', and 'Esq.' should not be parsed into their own sentences
+		book_parsed_with_punctuation = self.book_parsed_with_punctuation.replace('Mrs.', '$MRS$').replace('Mr.', '$MR$').replace('Esq.', '$ESQ$')
+		
+		# split at '.', '?', or '!', but preserve the punctuation after the split
+		book_parsed_sentences_list = re.split('(?<=[.!?]).', book_parsed_with_punctuation)
 		
 		trie = Trie()
 		# insert every sentence of the text into the trie
@@ -386,12 +337,16 @@ class ProjectGutenberg:
 			trie.insert(sentence)
 			pass
 
+		# capitalize the start of the sentence
+		start_of_sentence = start_of_sentence[0].upper() + start_of_sentence[1:]
 		if 'Mrs.' in start_of_sentence:
 			start_of_sentence = start_of_sentence.replace('Mrs.', '$MRS$')
 		if 'Mr.' in start_of_sentence:
 			start_of_sentence = start_of_sentence.replace('Mr.', '$MR$')
+		if 'Esq.' in start_of_sentence:
+			start_of_sentence = start_of_sentence.replace('Mr.', '$MR$')
 
-		autocomplete_sentences = trie.get_autocomplete_sentence_helper(start_of_sentence)
+		autocomplete_sentences = trie.get_autocomplete_sentences_helper(start_of_sentence)
 
 		# re-render 'Mrs.' and 'Mr.' in the autocomplete sentences
 		for i in range(len(autocomplete_sentences)):
@@ -399,8 +354,7 @@ class ProjectGutenberg:
 				autocomplete_sentences[i] = autocomplete_sentences[i].replace('$MRS$', 'Mrs.')
 			if '$MR$' in autocomplete_sentences[i]:
 				autocomplete_sentences[i] = autocomplete_sentences[i].replace('$MR$', 'Mr.')
+			if '$ESQ$' in autocomplete_sentences[i]:
+				autocomplete_sentences[i] = autocomplete_sentences[i].replace('$ESQ$', 'Esq.')
 
-		print('Autocomplete sentences starting with ' + '"' + start_of_sentence + '":')
-		for i in range(len(autocomplete_sentences)):
-			print(str(i + 1) + '. ' + autocomplete_sentences[i])
-
+		return autocomplete_sentences
